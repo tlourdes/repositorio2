@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import {auth} from "../firebase/config";
 
 class Login extends Component {
   constructor(props) {
@@ -7,13 +8,37 @@ class Login extends Component {
     this.state = {
       email: "",
       password: "",
+      loggedIn: false,
+      error1: "",
+      error2: "",
+      error3: "",
     };
   }
 
-  onSubmit() {
+  onSubmit(email,pass) {
     console.log("Datos ingresados:");
     console.log("Email:", this.state.email);
     console.log("Password:", this.state.password);
+    auth.signInWithEmailAndPassword(email, pass)
+    .then(response=>{
+
+     
+      this.setState({loggedIn: true, error1: "",
+        error2: "",
+        error3: ""}
+      );
+      console.log("Login exitoso:", response);
+      this.props.navigation.navigate("HomeMenu");
+    })
+
+    .catch(error=>{
+       if (!email.includes("@")){this.setState({error1: "Email mal formateado"})}else{this.setState({error1: ""})}
+      if (pass.length < 6){this.setState({error2: "La password debe tener una longitud mínima de 6 caracteres"})}else{this.setState({error2: ""})}
+
+      console.log("Error en el login:", error);
+      this.setState({error3: "Credenciales incorrectas"});
+    });
+
   }
 
   render() {
@@ -27,8 +52,11 @@ class Login extends Component {
           keyboardType="email-address"
           onChangeText={(text) => this.setState({ email: text })}
           value={this.state.email}
+
         />
 
+               <Text >{this.state.error1}</Text>
+             
 
         <TextInput
           style={styles.input}
@@ -37,13 +65,16 @@ class Login extends Component {
           onChangeText={(text) => this.setState({ password: text })}
           value={this.state.password}
         />
-
-
-        <Pressable style={styles.button} onPress={() => this.onSubmit()}>
+  <Text >{this.state.error2}</Text>
+   
+        <Pressable style={styles.button} onPress={() => this.onSubmit(this.state.email, this.state.password)} >
           <Text style={styles.buttonText}>Login</Text>
         </Pressable>
 
- 
+        {this.state.error1 === "" && this.state.error2 === "" ? (
+          <Text>{this.state.error3}</Text>
+        ) : null}
+
         <Pressable
           style={styles.button}
           onPress={() => this.props.navigation.navigate("Register")}
